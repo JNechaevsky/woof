@@ -52,7 +52,6 @@ typedef struct
   int   y;
 
   patch_t ***f;                         // font
-  int   sc;                             // start character
   char *cr;                         //jff 2/16/52 output color range
 
   // killough 1/23/98: Support multiple lines:
@@ -110,7 +109,6 @@ typedef struct
 {
   hu_textline_t l[HU_MAXMESSAGES]; // text lines to draw
   int     nl;                          // height in lines
-  int     nr;                          // total height in rows
   int     cl;                          // current line number
   int     x;                           // current line x
 
@@ -127,9 +125,6 @@ typedef struct
 typedef struct
 {
   hu_textline_t l;    // text line to input on
-
-  // left margin past which I am not to delete characters
-  int     lm;
 
   // pointer to boolean stating whether to update window
   boolean*    on; 

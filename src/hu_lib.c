@@ -94,7 +94,6 @@ void HUlib_initTextLine(hu_textline_t *t, int x, int y, patch_t ***f, int sc,
   t->x = x;
   t->y = y;
   t->f = f;
-  t->sc = sc;
   t->cr = cr;
   t->builder = builder;
   HUlib_clearTextLine(t);
@@ -145,8 +144,8 @@ void HUlib_addStringToTextLine(hu_textline_t *l, char *s)
       HUlib_addCharToTextLine(l, *s++);
       continue;
     }
-    else if (c != ' ' && c >= l->sc && c <= HU_FONTEND + 6)
-      w += SHORT(f[c - l->sc]->width);
+    else if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
+      w += SHORT(f[c - HU_FONTSTART]->width);
     else
       w += 4;
 
@@ -266,13 +265,13 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
               }
             }
           else
-            if (c != ' ' && c >= l->sc && c <= HU_FONTEND + 6)
+            if (c != ' ' && c >= HU_FONTSTART && c <= HU_FONTEND + 6)
               {
-                int w = SHORT(f[c - l->sc]->width);
+                int w = SHORT(f[c - HU_FONTSTART]->width);
                 if (x+w > SCREENWIDTH)
                   break;
                 // killough 1/18/98 -- support multiple lines:
-                V_DrawPatchTranslated(x, y, FG, f[c - l->sc], l->cr);
+                V_DrawPatchTranslated(x, y, FG, f[c - HU_FONTSTART], l->cr);
                 x += w;
               }
             else
@@ -284,8 +283,8 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
 
   // draw the cursor if requested
   // killough 1/18/98 -- support multiple lines
-  if (drawcursor && x + SHORT(f['_' - l->sc]->width) <= SCREENWIDTH)
-    V_DrawPatchTranslated(x, y, FG, f['_' - l->sc], l->cr);
+  if (drawcursor && x + SHORT(f['_' - HU_FONTSTART]->width) <= SCREENWIDTH)
+    V_DrawPatchTranslated(x, y, FG, f['_' - HU_FONTSTART], l->cr);
 }
 
 void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor)
@@ -471,7 +470,6 @@ void HUlib_initMText(hu_mtext_t *m, int x, int y, patch_t ***font,
   int i;
 
   m->nl = 0;
-  m->nr = 0;
   m->cl = -1; //jff 4/28/98 prepare for pre-increment
   m->x = x;
   m->on = on;
@@ -598,7 +596,6 @@ void HUlib_eraseMText(hu_mtext_t *m)
 void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
                      int startchar, char *cr, boolean *on)
 {
-  it->lm = 0; // default left margin is start of text
   it->on = on;
   it->laston = true;
   HUlib_initTextLine(&it->l, x, y, font, startchar, cr, NULL);
@@ -617,7 +614,7 @@ void HUlib_initIText(hu_itext_t *it, int x, int y, patch_t ***font,
 
 static void HUlib_delCharFromIText(hu_itext_t *it)
 {
-  if (it->l.len != it->lm)
+  if (it->l.len > 0)
     HUlib_delCharFromTextLine(&it->l);
 }
 
@@ -633,7 +630,6 @@ static void HUlib_delCharFromIText(hu_itext_t *it)
 
 void HUlib_resetIText(hu_itext_t *it)
 {
-  it->lm = 0;
   HUlib_clearTextLine(&it->l);
 }
 
