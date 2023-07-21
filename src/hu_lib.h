@@ -54,38 +54,41 @@ typedef struct
   patch_t ***f;                         // font
   char *cr;                         //jff 2/16/52 output color range
 
-  // killough 1/23/98: Support multiple lines:
-  #define MAXLINES 25
-
   int   linelen;
-  char  l[HU_MAXLINELENGTH*MAXLINES+1]; // line of text
+  char  l[HU_MAXLINELENGTH]; // line of text
   int   len;                            // current line length
 
   // whether this line needs to be udpated
   int   needsupdate;        
 
   int width;
-  boolean visible;
-  void (*builder) (void);
 
 } hu_textline_t;
 
 typedef enum {
-  align_topleft,
-  align_topleft_exclusive,
-  align_topright,
-  align_topcenter,
-  align_bottomleft,
-  align_bottomright,
-  align_bottomcenter,
   align_direct,
+
+  align_left,
+  align_right,
+  align_center,
+
+  align_top
+  align_bottom,
+
+  align_exclusive = 0x80,
+
   num_aligns,
 } align_t;
 
 typedef struct {
-  hu_textline_t *line;
-  align_t align;
+  hu_textline_t *l;
+  int nl, cl;
+
+  align_t h_align, v_align;
   int x, y;
+
+  boolean visible;
+  void (*builder) (void);
 } widget_t;
 
 

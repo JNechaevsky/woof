@@ -116,8 +116,10 @@ boolean HUlib_addCharToTextLine(hu_textline_t *t, char ch)
   else
     {
       t->linelen++;
+/*
       if (ch == '\n')
         t->linelen=0;
+*/
       t->l[t->len++] = ch;
       t->l[t->len] = 0;
       t->needsupdate = 4;
@@ -248,9 +250,11 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
     {
       c = toupper(l->l[i]); //jff insure were not getting a cheap toupper conv.
 
+/* TODO
       if (c=='\n')         // killough 1/18/98 -- support multiple lines
         x = 0, y += 8;
       else
+*/
         if (c=='\t')    // killough 1/23/98 -- support tab stops
           x = x - (x - l->x)%12 + 12;
         else
@@ -289,6 +293,8 @@ static void HUlib_drawTextLineAligned(hu_textline_t *l, boolean drawcursor)
 
 void HUlib_drawTextLine(hu_textline_t *l, align_t align, boolean drawcursor)
 {
+  int i;
+  for (i = 0; i < 
   HUlib_alignWidget(l, align);
   HUlib_drawTextLineAligned(l, drawcursor);
 }
