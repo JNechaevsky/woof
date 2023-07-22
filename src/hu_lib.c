@@ -27,25 +27,57 @@
 #include "r_main.h"
 #include "r_draw.h"
 
-// boolean : whether the screen is always erased
-#define noterased viewwindowx
+typedef enum {
+    offset_topleft,
+    offset_topright,
 
-static int align_offset[num_aligns];
+    offset_bottomleft,
+    offset_bottomright,
+
+    num_offsets,
+} offset_t;
+
+static int align_offset[num_offsets];
 
 void HUlib_resetAlignOffsets (void)
 {
-  int bottom = 199;
+    int bottom = ORIGHEIGHT - 1;
 
-  if (scaledviewheight < SCREENHEIGHT || crispy_hud || automap_on)
-    bottom -= 32;
+    if (scaledviewheight < SCREENHEIGHT || crispy_hud || automap_on)
+        bottom -= 32; // ST_HEIGHT
 
-  align_offset[align_topleft] = 0;
-  align_offset[align_topright] = 0;
-  align_offset[align_topcenter] = 0;
-  align_offset[align_bottomleft] = bottom;
-  align_offset[align_bottomright] = bottom;
-  align_offset[align_bottomcenter] = bottom;
+    align_offset[offset_topleft] = 0;
+    align_offset[offset_topright] = 0;
+    align_offset[offset_bottomleft] = bottom;
+    align_offset[offset_bottomright] = bottom;
 }
+
+void hu_init_multiline (hu_multiline_t *line,
+                        int numlines,
+                        align_t h_align, align_t v_align,
+                        int x, int y,
+                        patch_t ***font,
+                        char *color,
+                        void (*builder)(void),
+                        boolean *on)
+{
+    if (numlines != line->numlines)
+    {
+        line->numlines = numlines;
+        line->lines = I_Realloc(line->lines, line->numlines * sizeof(hu_textline_t));
+    }
+
+    line->h_align = h_align;
+    line->v_align = v_align;
+    line->x = x;
+    line->y = y;
+    line->font = font;
+    line->color = color;
+    line->builder = builder;
+    line->on = on;
+}
+
+#if 0
 
 //
 // not used currently
@@ -693,6 +725,8 @@ void HUlib_eraseIText(hu_itext_t* it)
   HUlib_eraseTextLine(&it->l);
   it->laston = *it->on;
 }
+
+#endif
 
 //----------------------------------------------------------------------------
 //

@@ -2466,7 +2466,7 @@ default_t defaults[] = {
   { // 1 line scrolling window
     "hud_msg_lines",
     (config_t *) &hud_msg_lines, NULL,
-    {4}, {1,HU_MAXMESSAGES}, number, ss_mess, wad_yes,
+    {1}, {1,HU_MAXLINES}, number, ss_mess, wad_yes,
     "number of message lines"
   },
 

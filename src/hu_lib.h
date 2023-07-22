@@ -25,73 +25,45 @@
 
 #define CR_ORIG (-1) // [FG] reset to original color
 
-// background and foreground screen numbers
-// different from other modules.
-#define BG      1
-#define FG      0
-
-// font stuff
-// #define HU_CHARERASE    KEY_BACKSPACE // not used               // phares
-
-#define HU_MAXLINES   4
+#define HU_MAXLINES 8
 #define HU_MAXLINELENGTH  80
-#define HU_REFRESHSPACING 8 /*jff 2/26/98 space lines in text refresh widget*/
-//jff 2/26/98 maximum number of messages allowed in refresh list
-#define HU_MAXMESSAGES 8
-
-//
-// Typedefs of widgets
-//
-
-// Text Line widget
-//  (parent of Scrolling Text and Input Text widgets)
-typedef struct
-{
-  // left-justified position of scrolling text window
-  int   x;
-  int   y;
-
-  patch_t ***f;                         // font
-  char *cr;                         //jff 2/16/52 output color range
-
-  int   linelen;
-  char  l[HU_MAXLINELENGTH]; // line of text
-  int   len;                            // current line length
-
-  // whether this line needs to be udpated
-  int   needsupdate;        
-
-  int width;
-
-} hu_textline_t;
 
 typedef enum {
-  align_direct,
+    align_direct,
 
-  align_left,
-  align_right,
-  align_center,
+    align_left,
+    align_right,
+    align_center,
 
-  align_top
-  align_bottom,
+    align_top,
+    align_bottom,
 
-  align_exclusive = 0x80,
-
-  num_aligns,
+    num_aligns,
+    align_exclusive = 0x80,
 } align_t;
 
-typedef struct {
-  hu_textline_t *l;
-  int nl, cl;
+typedef struct
+{
+    int x, y;
+    char line[HU_MAXLINELENGTH];
+    int width;
+} hu_textline_t;
 
-  align_t h_align, v_align;
-  int x, y;
+typedef struct
+{
+    hu_textline_t *lines;
+    align_t h_align, v_align;
+    int x, y;
+    patch_t ***font;
+    char *color;
+    void (*builder) (void);
 
-  boolean visible;
-  void (*builder) (void);
-} widget_t;
+    int numlines, curline;
+    boolean visible;
+    boolean *on;
+} hu_multiline_t;
 
-
+/*
 // Scrolling Text window widget
 //  (child of Text Line widget)
 typedef struct
@@ -248,7 +220,7 @@ void HUlib_drawIText(hu_itext_t* it, align_t align);
 
 // erases all itext lines
 void HUlib_eraseIText(hu_itext_t* it); 
-
+*/
 #endif
 
 

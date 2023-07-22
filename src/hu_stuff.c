@@ -101,66 +101,65 @@ patch_t **hu_font2 = hu_fontB;
 static int CR_BLUE = CR_BLUE1;
 
 // widgets
-static hu_textline_t  w_title;
-static hu_stext_t     w_message;
-static hu_itext_t     w_chat;
-static hu_itext_t     w_inputbuffer[MAXPLAYERS];
-static hu_textline_t  w_coord;
-static hu_textline_t  w_fps;
-static hu_textline_t  w_ammo;   //jff 2/16/98 new ammo widget for hud
-static hu_textline_t  w_health; //jff 2/16/98 new health widget for hud
-static hu_textline_t  w_armor;  //jff 2/16/98 new armor widget for hud
-static hu_textline_t  w_weapon; //jff 2/16/98 new weapon widget for hud
-static hu_textline_t  w_keys;   //jff 2/16/98 new keys widget for hud
-static hu_textline_t  w_monsec; //jff 2/16/98 new kill/secret widget for hud
-static hu_mtext_t     w_rtext;  //jff 2/26/98 text message refresh widget
-static hu_stext_t     w_secret; // [crispy] secret message widget
-static hu_textline_t  w_sttime; // time above status bar
+static hu_multiline_t w_title;
+static hu_multiline_t w_message;
+static hu_multiline_t w_chat;
+static hu_multiline_t w_inputbuffer[MAXPLAYERS];
+static hu_multiline_t w_coord;
+static hu_multiline_t w_fps;
+static hu_multiline_t w_ammo;   //jff 2/16/98 new ammo widget for hud
+static hu_multiline_t w_health; //jff 2/16/98 new health widget for hud
+static hu_multiline_t w_armor;  //jff 2/16/98 new armor widget for hud
+static hu_multiline_t w_weapon; //jff 2/16/98 new weapon widget for hud
+static hu_multiline_t w_keys;   //jff 2/16/98 new keys widget for hud
+static hu_multiline_t w_monsec; //jff 2/16/98 new kill/secret widget for hud
+static hu_multiline_t w_secret; // [crispy] secret message widget
+static hu_multiline_t w_sttime; // time above status bar
 
 #define MAX_HUDS 3
 #define MAX_WIDGETS 12
 
-static widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
+static hu_multiline_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
-    {&w_title,  align_bottomleft},
+    {&w_title,  align_left,  align_bottom},
 
-    {&w_monsec, align_bottomleft},
-    {&w_sttime, align_bottomleft},
-    {&w_coord,  align_topright},
-    {&w_fps,    align_topright},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
+    {&w_coord,  align_right, align_top},
+    {&w_fps,    align_right, align_top},
     {NULL}
   }, {
-    {&w_title,  align_bottomleft},
+    {&w_title,  align_left,  align_bottom},
 
-    {&w_armor,  align_bottomleft},
-    {&w_health, align_bottomleft},
-    {&w_ammo,   align_bottomleft},
-    {&w_weapon, align_bottomleft},
-    {&w_keys,   align_bottomleft},
+    {&w_armor,  align_left,  align_bottom},
+    {&w_health, align_left,  align_bottom},
+    {&w_ammo,   align_left,  align_bottom},
+    {&w_weapon, align_left,  align_bottom},
+    {&w_keys,   align_left,  align_bottom},
 
-    {&w_monsec, align_bottomleft},
-    {&w_sttime, align_bottomleft},
-    {&w_coord,  align_topright},
-    {&w_fps,    align_topright},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
+    {&w_coord,  align_right, align_top},
+    {&w_fps,    align_right, align_top},
     {NULL}
   }, {
-    {&w_title,  align_bottomleft},
+    {&w_title,  align_left,  align_bottom},
 
-    {&w_health, align_topright},
-    {&w_armor,  align_topright},
-    {&w_ammo,   align_bottomright},
-    {&w_weapon, align_bottomright},
-    {&w_keys,   align_bottomleft},
+    {&w_health, align_right, align_top},
+    {&w_armor,  align_right, align_top},
+    {&w_ammo,   align_right, align_bottom},
+    {&w_weapon, align_right, align_bottom},
+    {&w_keys,   align_left,  align_bottom},
 
-    {&w_monsec, align_bottomleft},
-    {&w_sttime, align_bottomleft},
-    {&w_coord , align_topright},
-    {&w_fps,    align_topright},
+    {&w_monsec, align_left,  align_bottom},
+    {&w_sttime, align_left,  align_bottom},
+    {&w_coord , align_right, align_top},
+    {&w_fps,    align_right, align_top},
     {NULL}
   }
 };
 
-static widget_t *widget = *widgets;
+static hu_multiline_t *widget = *widgets;
 
 static void HU_ParseHUD (void);
 
@@ -495,7 +494,7 @@ void HU_Init(void)
   HU_ResetMessageColors();
 }
 
-static inline void HU_enableWidget (hu_textline_t *line, boolean cond)
+static inline void HU_enableWidget (hu_multiline_t *line, boolean cond)
 {
   if (cond)
   {
@@ -505,16 +504,19 @@ static inline void HU_enableWidget (hu_textline_t *line, boolean cond)
 
 void HU_disableAllWidgets (void)
 {
-  widget_t *w = widget;
+  hu_multiline_t *w = widget;
 
   while (w->line)
   {
-    if (w->align == align_direct)
+    if (w->h_align == align_direct)
     {
       w->line->x = w->x;
+    }
+    if (w->v_align == align_direct)
+    {
       w->line->y = w->y;
     }
-    w->line->visible = false;
+    w->visible = false;
     w++;
   }
 }
@@ -577,66 +579,84 @@ void HU_Start(void)
   // [crispy] re-calculate WIDESCREENDELTA
   I_GetScreenDimensions();
 
-  // create the message widget
-  // messages to player in upper-left of screen
-  HUlib_initSText(&w_message, HU_MSGX, HU_MSGY, HU_MSGHEIGHT, &hu_font,
-                  HU_FONTSTART, colrngs[hudcolor_mesg], &message_on);
-
-  // create the secret message widget
-  HUlib_initSText(&w_secret, 0, 100 - 2*SHORT(hu_font[0]->height), HU_MSGHEIGHT, &hu_font,
-                  HU_FONTSTART, colrngs[CR_GOLD], &secret_on);
-
-  //jff 2/26/98 add the text refresh widget initialization
-  HUlib_initMText(&w_rtext, HU_MSGX, HU_MSGY, &hu_font,
-                  HU_FONTSTART, colrngs[hudcolor_mesg], &message_list_on); // killough 11/98
-
-  // create the hud text refresh widget
-  // scrolling display of last hud_msg_lines messages received
   if (hud_msg_lines > HU_MAXMESSAGES)
   {
     hud_msg_lines = HU_MAXMESSAGES;
   }
 
-  // create the chat widget
-  HUlib_initIText(&w_chat, HU_INPUTX, HU_INPUTY, &hu_font,
-                  HU_FONTSTART, colrngs[hudcolor_chat], &chat_on);
+  hu_init_multiline(&w_message, hud_msg_lines,
+                    0, 0, 0, 0,
+                    &hu_font, colrngs[hudcolor_mesg],
+                    NULL, &message_on);
+
+  hu_init_multiline(&w_secret, 1,
+                    0, 0, 100 - 2*SHORT(hu_font[0]->height), 0,
+                    &hu_font, colrngs[CR_GOLD],
+                    NULL, &secret_on);
+
+  hu_init_multiline(&w_chat, 1,
+                    0, 0, HU_INPUTX, HU_INPUTY,
+                    &hu_font, colrngs[hudcolor_chat],
+                    NULL, &chat_on);
 
   // create the inputbuffer widgets, one per player
   for (i = 0; i < MAXPLAYERS; i++)
   {
-    HUlib_initIText(&w_inputbuffer[i], 0, 0, 0,
-                    0, colrngs[hudcolor_chat], &always_off);
+      hu_init_multiline(&w_inputbuffer[i], 1,
+                        0, 0, 0, 0,
+                        &hu_font, colrngs[hudcolor_chat],
+                        NULL, &always_off);
   }
 
-  //jff 2/16/98 added some HUD widgets
-  // create the map title widget - map title display in lower left of automap
-  HUlib_initTextLine(&w_title, HU_TITLEX, HU_TITLEY, &hu_font,
-                     HU_FONTSTART, colrngs[hudcolor_titl], NULL);
+  hu_init_multiline(&w_chat, 1,
+                    0, 0, HU_TITLEX, HU_TITLEY,
+                    &hu_font, colrngs[hudcolor_titl],
+                    NULL, NULL);
 
-  // create the hud health widget
-  HUlib_initTextLine(&w_health, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN], HU_widget_build_health);
+  hu_init_multiline(&w_health, 1,
+                    0, 0, HU_TITLEX, HU_TITLEY,
+                    &hu_font2, colrngs[CR_GREEN],
+                    HU_widget_build_health, NULL);
 
-  // create the hud armor widget
-  HUlib_initTextLine(&w_armor, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GREEN], HU_widget_build_armor);
+  hu_init_multiline(&w_armor, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[CR_GREEN],
+                    HU_widget_build_armor, NULL);
 
-  // create the hud ammo widget
-  HUlib_initTextLine(&w_ammo, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GOLD], HU_widget_build_ammo);
+  hu_init_multiline(&w_ammo, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[CR_GOLD],
+                    HU_widget_build_ammo, NULL);
 
-  // create the hud weapons widget
-  HUlib_initTextLine(&w_weapon, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_weapon);
+  hu_init_multiline(&w_weapon, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[CR_GRAY],
+                    HU_widget_build_weapon, NULL);
 
-  // create the hud keys widget
-  HUlib_initTextLine(&w_keys, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_keys);
+  hu_init_multiline(&w_keys, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[CR_GRAY],
+                    HU_widget_build_keys, NULL);
 
-  // create the hud monster/secret widget
-  HUlib_initTextLine(&w_monsec, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_monsec);
+  hu_init_multiline(&w_monsec, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[CR_GRAY],
+                    HU_widget_build_monsec, NULL);
 
-  HUlib_initTextLine(&w_sttime, 0, 0, &hu_font2, HU_FONTSTART, colrngs[CR_GRAY], HU_widget_build_sttime);
+  hu_init_multiline(&w_sttime, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[CR_GRAY],
+                    HU_widget_build_sttime, NULL);
 
-  // create the automaps coordinate widget
-  HUlib_initTextLine(&w_coord, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco], HU_widget_build_coord);
+  hu_init_multiline(&w_coord, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[hudcolor_xyco],
+                    HU_widget_build_coord, NULL);
 
-  HUlib_initTextLine(&w_fps, 0, 0, &hu_font2, HU_FONTSTART, colrngs[hudcolor_xyco], HU_widget_build_fps);
+  hu_init_multiline(&w_fps, 1,
+                    0, 0, 0, 0,
+                    &hu_font2, colrngs[hudcolor_xyco],
+                    HU_widget_build_fps, NULL);
 
   // initialize the automap's level title widget
   if (gamemapinfo && gamemapinfo->levelname)
@@ -1976,7 +1996,7 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
   }
   else if (!strcasecmp(alignstr, "topright")    || !strcasecmp(alignstr, "upperright"))
   {
-    return HU_AddToWidgets(widget, hud, align_topright, 0, 0);
+    return HU_AddToWidgets(widget, hud, align_right, align_top, 0, 0);
   }
   else if (!strcasecmp(alignstr, "topcenter")   || !strcasecmp(alignstr, "uppercenter"))
   {
@@ -1984,11 +2004,11 @@ static boolean HU_AddHUDAlignment (char *name, int hud, char *alignstr)
   }
   else if (!strcasecmp(alignstr, "bottomleft")  || !strcasecmp(alignstr, "lowerleft"))
   {
-    return HU_AddToWidgets(widget, hud, align_bottomleft, 0, 0);
+    return HU_AddToWidgets(widget, hud, align_left, align_bottom, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomright") || !strcasecmp(alignstr, "lowerright"))
   {
-    return HU_AddToWidgets(widget, hud, align_bottomright, 0, 0);
+    return HU_AddToWidgets(widget, hud, align_right, align_bottom, 0, 0);
   }
   else if (!strcasecmp(alignstr, "bottomcenter")|| !strcasecmp(alignstr, "lowercenter"))
   {
