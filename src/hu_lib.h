@@ -29,39 +29,50 @@
 #define HU_MAXLINELENGTH  80
 
 typedef enum {
+    // [FG] h_align / v_align
     align_direct,
 
+    // [FG] h_align
     align_left,
     align_right,
     align_center,
 
+    // [FG] v_align
     align_top,
     align_bottom,
 
     num_aligns,
-    align_exclusive = 0x80,
 } align_t;
 
 typedef struct
 {
-    int x, y;
-    char line[HU_MAXLINELENGTH];
+    char string[HU_MAXLINELENGTH];
     int width;
 } hu_textline_t;
 
 typedef struct
 {
-    hu_textline_t *lines;
-    align_t h_align, v_align;
-    int x, y;
+    hu_textline_t **textlines;
+    int numlines, curline;
+
+    boolean exclusive;
+    boolean bottom_to_top;
+
     patch_t ***font;
     char *color;
-    void (*builder) (void);
 
-    int numlines, curline;
-    boolean visible;
     boolean *on;
+
+    void (*builder) (void);
+    boolean visible;
 } hu_multiline_t;
+
+typedef struct
+{
+    hu_multiline_t *multiline;
+    align_t h_align, v_align;
+    int x, y;
+} hu_widget_t;
 
 /*
 // Scrolling Text window widget

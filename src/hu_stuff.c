@@ -119,7 +119,15 @@ static hu_multiline_t w_sttime; // time above status bar
 #define MAX_HUDS 3
 #define MAX_WIDGETS 12
 
-static hu_multiline_t widgets[MAX_HUDS][MAX_WIDGETS] = {
+static hu_widget_t vanilla_widgets[] = {
+    {w_message,     align_left,   align_top},
+    {w_chat,        align_left,   align_top},
+    {w_inputbuffer, align_direct, align_direct, 0, 0},
+    {w_secret,      align_center, align_direct, 0, 84},
+    {NULL}
+};
+
+static hu_widget_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   {
     {&w_title,  align_left,  align_bottom},
 
@@ -159,7 +167,7 @@ static hu_multiline_t widgets[MAX_HUDS][MAX_WIDGETS] = {
   }
 };
 
-static hu_multiline_t *widget = *widgets;
+static hu_widget_t *widget = *widgets;
 
 static void HU_ParseHUD (void);
 
@@ -504,17 +512,17 @@ static inline void HU_enableWidget (hu_multiline_t *line, boolean cond)
 
 void HU_disableAllWidgets (void)
 {
-  hu_multiline_t *w = widget;
+  hu_widget_t *w = widget;
 
-  while (w->line)
+  while (w->lines)
   {
     if (w->h_align == align_direct)
     {
-      w->line->x = w->x;
+      w->lines->x = w->x;
     }
     if (w->v_align == align_direct)
     {
-      w->line->y = w->y;
+      w->lines->y = w->y;
     }
     w->visible = false;
     w++;
@@ -579,84 +587,83 @@ void HU_Start(void)
   // [crispy] re-calculate WIDESCREENDELTA
   I_GetScreenDimensions();
 
-  if (hud_msg_lines > HU_MAXMESSAGES)
-  {
-    hud_msg_lines = HU_MAXMESSAGES;
-  }
-
-  hu_init_multiline(&w_message, hud_msg_lines,
-                    0, 0, 0, 0,
+  hu_init_multiline(&w_message, message_list ? hud_msg_lines : 1,
+                    true, true,
                     &hu_font, colrngs[hudcolor_mesg],
-                    NULL, &message_on);
+                    &message_on, NULL);
 
   hu_init_multiline(&w_secret, 1,
-                    0, 0, 100 - 2*SHORT(hu_font[0]->height), 0,
+                    false, false,
                     &hu_font, colrngs[CR_GOLD],
-                    NULL, &secret_on);
+                    &secret_on, NULL);
 
   hu_init_multiline(&w_chat, 1,
-                    0, 0, HU_INPUTX, HU_INPUTY,
+                    true, false,
                     &hu_font, colrngs[hudcolor_chat],
-                    NULL, &chat_on);
+                    &chat_on, NULL);
+
+  vanilla_widgets[0].h_align =
+  vanilla_widgets[1].h_align =
+  message_centered ? align_center : align_left;
 
   // create the inputbuffer widgets, one per player
   for (i = 0; i < MAXPLAYERS; i++)
   {
-      hu_init_multiline(&w_inputbuffer[i], 1,
-                        0, 0, 0, 0,
+      hu_init_multiline(&w_inputbuffer[i], 0,
+                        false, false,
                         &hu_font, colrngs[hudcolor_chat],
-                        NULL, &always_off);
+                        &always_off, NULL);
   }
 
-  hu_init_multiline(&w_chat, 1,
-                    0, 0, HU_TITLEX, HU_TITLEY,
+  hu_init_multiline(&w_title, 1,
+                    true, false,
                     &hu_font, colrngs[hudcolor_titl],
                     NULL, NULL);
 
   hu_init_multiline(&w_health, 1,
-                    0, 0, HU_TITLEX, HU_TITLEY,
+                    false, false,
                     &hu_font2, colrngs[CR_GREEN],
-                    HU_widget_build_health, NULL);
+                    NULL, HU_widget_build_health);
 
   hu_init_multiline(&w_armor, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[CR_GREEN],
-                    HU_widget_build_armor, NULL);
+                    NULL, HU_widget_build_armor);
 
   hu_init_multiline(&w_ammo, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[CR_GOLD],
-                    HU_widget_build_ammo, NULL);
+                    NULL, HU_widget_build_ammo);
 
   hu_init_multiline(&w_weapon, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[CR_GRAY],
-                    HU_widget_build_weapon, NULL);
+                    NULL, HU_widget_build_weapon);
 
   hu_init_multiline(&w_keys, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[CR_GRAY],
-                    HU_widget_build_keys, NULL);
+                    NULL, HU_widget_build_keys);
 
   hu_init_multiline(&w_monsec, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[CR_GRAY],
-                    HU_widget_build_monsec, NULL);
+                    NULL, HU_widget_build_monsec);
 
   hu_init_multiline(&w_sttime, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[CR_GRAY],
-                    HU_widget_build_sttime, NULL);
+                    NULL, HU_widget_build_sttime);
 
   hu_init_multiline(&w_coord, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[hudcolor_xyco],
-                    HU_widget_build_coord, NULL);
+                    NULL, HU_widget_build_coord);
 
   hu_init_multiline(&w_fps, 1,
-                    0, 0, 0, 0,
+                    false, false,
                     &hu_font2, colrngs[hudcolor_xyco],
-                    HU_widget_build_fps, NULL);
+                    NULL, HU_widget_build_fps);
 
   // initialize the automap's level title widget
   if (gamemapinfo && gamemapinfo->levelname)

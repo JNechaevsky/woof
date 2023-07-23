@@ -54,17 +54,31 @@ void HUlib_resetAlignOffsets (void)
 
 void hu_init_multiline (hu_multiline_t *line,
                         int numlines,
-                        align_t h_align, align_t v_align,
-                        int x, int y,
+                        boolean exclusive,
+                        boolean bottom_to_top,
                         patch_t ***font,
                         char *color,
+                        boolean *on,
                         void (*builder)(void),
-                        boolean *on)
+                        )
 {
     if (numlines != line->numlines)
     {
+        int i;
+
+        for (i = 0; i < line->numlines; i++)
+        {
+            free(line->lines[i]);
+        }
+
         line->numlines = numlines;
         line->lines = I_Realloc(line->lines, line->numlines * sizeof(hu_textline_t));
+
+        for (i = 0; i < line->numlines; i++)
+        {
+            line->lines[i] = malloc(sizeof(hu_textline_t));
+            memset(line->lines[i], 0, sizeof(hu_textline_t));
+        }
     }
 
     line->h_align = h_align;
